@@ -19,4 +19,7 @@ namespace BattleEngine {
 	bool isValidMove(const Wizard& caster, const std::string& spellName);
 	std::string getSpellNameByIndex(const Wizard& caster, int index);
 	void displayEndScreen(GameStatus status);
+	GameStatus runBattle(Wizard& player, Wizard& enemy);
 }
+
+void runStoryMode(Wizard& player);

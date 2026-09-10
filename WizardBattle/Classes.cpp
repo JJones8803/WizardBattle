@@ -159,3 +159,26 @@ Wizard createEarthWizard() {
 	wiz.setWeaknesses({ "Fire" });
 	return wiz;
 }
+
+Wizard createMartialArtist(){
+	Wizard monk;
+	monk.setName("");
+	monk.setType("");
+	monk.setHp(1500);
+	monk.setSpells({
+
+	});
+	return monk;
+}
+
+
+Wizard createNoboro(){
+	Wizard finalBoss;
+	finalBoss.setName("Noboro the Cruel");
+	finalBoss.setType("Dark");
+	finalBoss.setHp(4000);
+	finalBoss.setSpells({
+
+	});
+	return finalBoss;
+}

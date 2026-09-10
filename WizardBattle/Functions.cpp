@@ -13,7 +13,7 @@
  using namespace std::chrono;
  using namespace std::chrono_literals;
 
-void text_print(std::string_view text, int delay) {
+void text_print(std::string_view text, int delay) { //delay = 100 until told otherwise
     for (char c : text) {
         cout << c;
         cout.flush();
@@ -205,3 +205,69 @@ void BattleEngine::displayEndScreen(GameStatus status) {
     std::cout << "========================================\n" << std::endl;
 }
 
+GameStatus BattleEngine::runBattle(Wizard& player, Wizard& enemy){
+	//GAME STATE INITIALIZATION
+    GameStatus status = GameStatus::IP;
+	Player currentPlayer = Player::P1;
+	int turnCount = 1;
+
+	//MAIN GAME LOOP
+    while (status == GameStatus::IP) {
+        string turnTitle = (currentPlayer == Player::P1) ? "YOUR TURN" : "ENEMY TURN";
+
+        BattleEngine::displayBattle(turnCount, turnTitle, player, enemy);
+
+        if (currentPlayer == Player::P1) {
+            // Player's turn: Get the player's move and execute it
+            bool validMove = false;
+            string selectedSpell = "";
+
+            while (!validMove) {
+                int spellIdx = -1;
+                cout << "Select a spell: ";
+                if (!(cin >> spellIdx)) {
+                    cin.clear();
+                    cin.ignore(1000, '\n');
+                    continue;
+                }
+
+                selectedSpell = BattleEngine::getSpellNameByIndex(player, spellIdx);
+
+                if (BattleEngine::isValidMove(player, selectedSpell)) {
+                    validMove = true;
+                }
+                else {
+                    text_print("Invalid spell, choose another.");
+                }
+            }
+            BattleEngine::spellCast(player, enemy, selectedSpell);
+
+        }
+        else {
+            //NPC's turn: Get the NPC's move and execute it
+            text_print(enemy.getName() + " is choosing a spell...");
+            string npcSpell = BattleEngine::getNPCMove(enemy);
+			BattleEngine::spellCast(enemy, player, npcSpell);
+        }
+
+        //POST-TURN CHECK: Check for win conditions after each turn and update the game status accordingly
+        status = BattleEngine::checkWinCondition(player, enemy);
+
+        if (status == GameStatus::IP) {
+            currentPlayer = (currentPlayer == Player::P1) ? Player::NPC : Player::P1; // Switch turns
+            turnCount++;
+            cout << "\nPress Enter to continue...";
+            cin.ignore(); // Wait for user input before proceeding to the next turn
+            cin.get();
+        }
+    }
+    return status;
+}
+
+//Story mode implementation
+//ADD: dialouge function that does the text_print function after every "."
+void runStoryMode(Wizard& player){
+    vector<Wizard> storyCampaign ={
+        
+    };
+}

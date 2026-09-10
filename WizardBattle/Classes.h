@@ -3,16 +3,54 @@
 #include <string_view>
 #include <map>
 #include <vector>
+#include <unordered_map>
 
-enum class Player{P1, NPC};
-enum class GameStatus{IP, P1Wins, NPCWins};
+enum class Player{ P1, NPC };
+enum class GameStatus{ IP, P1Wins, NPCWins };
 
 //Allows unique names without compromising clarity in the code.
-enum class SpellType { Attack, Buff, Shield };
+enum class SpellType{ Attack, Buff, Shield };
+
+//OVERHAUL: Affinity allows for smoother damage checks
+enum class Affinity{ Neutral, Advantage, Disadvantage };
 struct SpellInfo {
 	int damage;
 	int uses;
 	SpellType category; //The spell's DNA. 
+};
+
+//OVERHAUL: Element System class to pair with affinity checks
+class ElementSystem {
+public:
+//returns the affinity relationship between an attacker element and a defender element
+//pairs are encoded as "Attacker->Defender"
+	static Affinity getAffinity(const std::string& attacker, const std::string& defender){
+		static const std::unordered_map<std::string, Affinity> typeMatrix = {
+			{"Fire->Earth", Affinity::Advantage},
+			{"Fire->Water", Affinity::Disadvantage},
+
+			{"Water->Fire", Affinity::Advantage},
+			{"Water->Earth", Affinity::Disadvantage},
+			
+			{"Earth->Water", Affinity::Advantage},
+			{"Earth->Fire", Affinity::Disadvantage}
+		};
+		std::string key = attacker + "->" + defender;
+		auto it = typeMatrix.find(key);
+		return (it != typeMatrix.end()) ? it->second : Affinity::Neutral;
+	}
+	static std::string getWeakerElement(const std::string& element) {
+		if (element == "Fire") return "Earth";
+		if (element == "Water") return "Fire";
+		if (element == "Earth") return "Water";
+		return "Water";
+	}
+	static std::string getCounterElement(const std::string& element){
+		if (element == "Fire") return "Water";
+		if (element == "Water") return "Earth";
+		if (element == "Earth") return "Fire";
+		return "Fire";	
+	}
 };
 
 class Wizard {
@@ -61,3 +99,8 @@ Wizard createFireWizard();
 Wizard createWaterWizard();
 
 Wizard createEarthWizard();
+
+Wizard createMartialArtist();
+
+Wizard createNoboro();
+
