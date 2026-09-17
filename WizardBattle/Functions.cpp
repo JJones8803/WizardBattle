@@ -111,36 +111,102 @@ void BattleEngine::executeTurn(Wizard& attacker, Wizard& defender, const std::st
     }
 	
     defender.takeDamage(baseDamage, attacker.getType()); // Apply damage to the defender, considering their type for weaknesses/resistances
-
 }
-//!!!!!Create basic decision tree at later date. For now, the NPC will just pick a random spell from their spell list to cast each turn.
-std::string BattleEngine::getNPCMove(const Wizard& npc) {
-	auto& spells = npc.getSpells(); //gets a reference to the NPC's spells for easy access
-    if (spells.empty()) { return ""; }// Safety check: if the NPC has no spells, return an empty string (though ideally, this should never happen if wizards are properly initialized)
 
-    if (npc.getHp() < 600 && !npc.getIsShielded()) {
-        if ((rand() % 100 < 45)) {
-            for (const auto& [spellName, spellInfo] : spells) {
-                if (spellInfo.category == SpellType::Shield && spellInfo.uses > 0) return spellName; // Prioritize casting a shield spell if HP is low and not already shielded
-			}
+std::string BattleEngine::getNPCMove(const Wizard& npc, const Wizard& opponent) {
+    const auto& spells = npc.getSpells();
+    
+    std::string bestSpell = "";
+    int highestScore = -1000;
+
+    // Calculate current health percentage
+    double hpRatio = static_cast<double>(npc.getHp()) / static_cast<double>(npc.getMaxHP());
+
+    for (const auto& entry : spells) {
+        const std::string& name = entry.first;
+        const SpellInfo& spell = entry.second;
+
+        // Never consider depleted spells
+        if (spell.uses <= 0) {
+            continue;
+        }
+
+        int score = 0;
+
+        switch (spell.category) {
+            case SpellType::Shield:
+                // If already shielded, do not waste a turn shielding again
+                if (npc.getIsShielded()) {
+                    score = -500;
+                } 
+                // Critical danger: Prioritize heavily
+                else if (hpRatio < 0.35) {
+                    score = 250; 
+                } 
+                // Moderate damage taken: Reasonable defensive option
+                else if (hpRatio < 0.65) {
+                    score = 80;
+                } 
+                // High HP: Low priority to shield
+                else {
+                    score = 10;
+                }
+                break;
+
+            case SpellType::Buff:
+                // Don't re-buff if already empowered
+                if (npc.getIsBuffed()) {
+                    score = -500;
+                }
+                // Don't waste time buffing if about to die
+                else if (hpRatio < 0.25) {
+                    score = 5;
+                }
+                // High health is the prime time to set up big combos
+                else if (hpRatio > 0.70) {
+                    score = 120;
+                } 
+                else {
+                    score = 40;
+                }
+                break;
+
+            case SpellType::Attack:
+                // Base attack value is tied to raw damage potential
+                score = spell.damage;
+
+                // 1. If currently buffed, prioritize your biggest nuke to maximize multiplier
+                if (npc.getIsBuffed()) {
+                    score *= 2; 
+                }
+
+                // 2. Kill shot check: If this attack will defeat the opponent right now, TAKE IT!
+                if (spell.damage >= opponent.getHp()) {
+                    score += 500; 
+                }
+
+                // 3. Low HP Desperation: If low on health and unshielded, prioritize faster/heavier hits
+                if (hpRatio < 0.40 && !npc.getIsShielded()) {
+                    score += 40;
+                }
+                break;
+        }
+
+        // Track the highest-scoring action
+        if (score > highestScore) {
+            highestScore = score;
+            bestSpell = name;
         }
     }
-	//Basic default spell cast logic below: If the NPC is not in a critical HP state or already shielded, it will randomly select a spell from its spell list to cast.
-	//1. Set up the Randomizer (the modern C++ way using <random> library):
-	static std::random_device rd; // Seed for random number generator
-	static std::mt19937 gen(rd()); // Mersenne Twister random number generator
-	int maxIndex = static_cast<int>(spells.size()) - 1; // safe cast because spells is not empty here
-	std::uniform_int_distribution<int> dis(0, maxIndex); // Distribution to select a random spell index based on the number of spells available
 
-    //2. Pick a random index from the spell list
-	int randomIndex = dis(gen); // randomly select an index for the spell to cast
+    // Fallback: If somehow all scoring failed, return the first spell with uses > 0
+    if (bestSpell.empty()) {
+        for (const auto& entry : spells) {
+            if (entry.second.uses > 0) return entry.first;
+        }
+    }
 
-    //3. Move an iterator to that position 
-	auto it = spells.begin();
-	std::advance(it, static_cast<std::ptrdiff_t>(randomIndex)); // Move the iterator to the randomly selected index
-
-	//4. Return the name of the spell (the key of the map) corresponding to the randomly selected index
-	return it->first; 
+    return bestSpell;
 }
 
 std::string BattleEngine::getPlayerMove(const Wizard& player) {
@@ -246,7 +312,7 @@ GameStatus BattleEngine::runBattle(Wizard& player, Wizard& enemy){
         else {
             //NPC's turn: Get the NPC's move and execute it
             text_print(enemy.getName() + " is choosing a spell...");
-            string npcSpell = BattleEngine::getNPCMove(enemy);
+            string npcSpell = BattleEngine::getNPCMove(enemy, player);
 			BattleEngine::spellCast(enemy, player, npcSpell);
         }
 

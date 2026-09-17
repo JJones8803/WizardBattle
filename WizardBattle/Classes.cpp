@@ -5,8 +5,9 @@ Wizard::Wizard(const std::string& name, const std::string& type,
 	const std::map<std::string, SpellInfo>& spells,
 	const std::vector<std::string>& resistances,
 	const std::vector<std::string>& weaknesses,
-	int hp)
+	int hp, int maxHp)
 	: hp(hp),
+	  maxHp(maxHp),
 	  name(name),
 	  type(type),
 	  spells(spells),
@@ -20,6 +21,10 @@ Wizard::~Wizard(){}
 
 int Wizard::getHp() const {
 	return hp;
+}
+
+int Wizard::getMaxHP() const {
+	return maxHp;
 }
 
 std::string Wizard::getName() const {
@@ -60,6 +65,10 @@ void Wizard::setHp(int newHp) {
 	hp = newHp;
 }
 
+void Wizard::setMaxHp(int newMaxHp){
+	maxHp = newMaxHp;
+}
+
 void Wizard::setIsShielded(bool shielded) {
 	isShielded = shielded;
 }
@@ -88,21 +97,19 @@ void Wizard::setWeaknesses(std::vector<std::string> newWeakness) {
 } 
 
 void Wizard::takeDamage(int rawDamage, const std::string& attackType) {
-	int finalDamage = rawDamage;
+	double multiplier = 1.0;
 
-	for (const std::string& w : weaknesses) {
-		if (w == attackType) {
-			finalDamage *= 2; // Double damage if the attack type is a weakness
-			std::cout << "It hits HARD! "; 
-		}
+	//Affinity Check: attacker element->defender element
+	Affinity rel = ElementSystem::getAffinity(attackType, this->type);
+	if (rel == Affinity::Advantage){
+		multiplier = 1.5;
+		std::cout << "It's Super Effective!\n";
+	} else if (rel == Affinity::Disadvantage){
+		multiplier = 0.75;
+		std::cout << "It's not very effective...\n";
 	}
 
-	for (const std::string& r : resistances) {
-		if (r == attackType) {
-			finalDamage /= 2; // Double damage if the attack type is a weakness
-			std::cout << "It hits like a sock...";
-		}
-	}
+	int finalDamage = static_cast<int>(rawDamage * multiplier);
 
 	this->hp -= finalDamage; // Subtract the final damage from the wizard's HP
 	if (this->hp < 0) {
@@ -181,4 +188,8 @@ Wizard createNoboro(){
 
 	});
 	return finalBoss;
+}
+
+Wizard createWizardByType(const std::string& type){
+	if (type == "Fire") return createFireWizard();
 }

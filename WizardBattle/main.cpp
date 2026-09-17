@@ -5,6 +5,7 @@
 #include <chrono>
 #include "Classes.h"
 #include "Functions.h"
+#include "StoryMode.h"
 
 using namespace std;
 
@@ -95,7 +96,7 @@ int main() {
         else {
             //NPC's turn: Get the NPC's move and execute it
             text_print(npc.getName() + " is choosing a spell...");
-            string npcSpell = BattleEngine::getNPCMove(npc);
+            string npcSpell = BattleEngine::getNPCMove(npc, player);
 			BattleEngine::spellCast(npc, player, npcSpell);
         }
 

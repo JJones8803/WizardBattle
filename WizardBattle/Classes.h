@@ -11,7 +11,7 @@ enum class GameStatus{ IP, P1Wins, NPCWins };
 //Allows unique names without compromising clarity in the code.
 enum class SpellType{ Attack, Buff, Shield };
 
-//OVERHAUL: Affinity allows for smoother damage checks
+//OVERHAUL: Affinity allows for smoother damage checks (1.5x & 0.75x respectfully)
 enum class Affinity{ Neutral, Advantage, Disadvantage };
 struct SpellInfo {
 	int damage;
@@ -56,6 +56,7 @@ public:
 class Wizard {
 private:
 	int hp = 2500;
+	int maxHp = 2500;
 	std::string name, type;
 	std::map<std::string, SpellInfo> spells;
 	std::vector<std::string> resistances;
@@ -71,10 +72,11 @@ public:
 		const std::map<std::string, SpellInfo>& spells,
 		const std::vector<std::string>& resistances,
 		const std::vector<std::string>& weaknesses,
-		int hp = 2500);
+		int hp = 2500, int maxHp = 2500);
 	~Wizard();
 
 	int getHp() const;
+	int getMaxHP() const;
 	std::string getName() const;
 	std::string getType() const;
 	std::map<std::string, SpellInfo>& getSpells();
@@ -84,6 +86,7 @@ public:
 	bool getIsShielded() const;
 	bool getIsBuffed() const;
 	void setHp(int newHp);
+	void setMaxHp(int newHp);
 	void setName(std::string newName);
 	void setType(std::string newType);
 	void setSpells(std::map<std::string, SpellInfo> newSpells);
@@ -103,4 +106,6 @@ Wizard createEarthWizard();
 Wizard createMartialArtist();
 
 Wizard createNoboro();
+
+Wizard createWizardByType(const std::string& type);
 

@@ -15,7 +15,7 @@ namespace BattleEngine {
 	void spellCast(Wizard& caster, Wizard& target, const std::string& spellName);
 	void executeTurn(Wizard& attacker, Wizard& defender, const std::string& spellName);
 	std::string getPlayerMove(const Wizard& player);
-	std::string getNPCMove(const Wizard& npc);
+	std::string getNPCMove(const Wizard& npc, const Wizard& opponent);
 	bool isValidMove(const Wizard& caster, const std::string& spellName);
 	std::string getSpellNameByIndex(const Wizard& caster, int index);
 	void displayEndScreen(GameStatus status);
