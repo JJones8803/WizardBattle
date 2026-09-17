@@ -43,13 +43,13 @@ public:
 		if (element == "Fire") return "Earth";
 		if (element == "Water") return "Fire";
 		if (element == "Earth") return "Water";
-		return "Water";
+		return "";
 	}
 	static std::string getCounterElement(const std::string& element){
 		if (element == "Fire") return "Water";
 		if (element == "Water") return "Earth";
 		if (element == "Earth") return "Fire";
-		return "Fire";	
+		return "";	
 	}
 };
 

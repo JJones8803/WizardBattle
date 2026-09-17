@@ -81,36 +81,23 @@ void BattleEngine::spellCast(Wizard& caster, Wizard& target, const std::string& 
 
         case SpellType::Attack:
             text_print(caster.getName() + " casts " + spellName + "!");
-			executeTurn(caster, target, spellName); // Execute the attack logic for the chosen spell);
+            int outgoingDamage = choice.damage;
+
+            //Resolve attacker's buff here before sending damage to defender
+            if (caster.getIsBuffed()){
+                outgoingDamage *= 2;
+                caster.setIsBuffed(false);
+                text_print(caster.getName() + "'s magic is empowered by their focus...");
+            }
+            //pass the defense/Affinity calculations off to the target
+            target.takeDamage(outgoingDamage, caster.getType());
             break;
-    }
+        }
     choice.uses--;
     if (choice.uses == 0){
-		text_print(caster.getName() + " has exhausted " + spellName + "!");
-		spells.erase(spellName); // Remove the spell from the caster's spell list if it's exhausted
-    }
-    
-}
-
-void BattleEngine::executeTurn(Wizard& attacker, Wizard& defender, const std::string& spellName) {
-	auto& spells = attacker.getSpells(); // Get a reference to the attacker's spells for easy access
-    int baseDamage = spells[spellName].damage;
-
-    //Buff Check
-    if (attacker.getIsBuffed()){
-        baseDamage *= 2;
-		attacker.setIsBuffed(false); // Reset buff status after applying the buff
-        std::cout << attacker.getName() << "'s magic is empowered!\n";
-    }
-
-	//Shield Check
-    if (defender.getIsShielded()) {
-		baseDamage /= 2;
-		defender.setIsShielded(false); // Reset shield status after applying the shield
-        std::cout << defender.getName() << "'s defense is active!\n";
-    }
-	
-    defender.takeDamage(baseDamage, attacker.getType()); // Apply damage to the defender, considering their type for weaknesses/resistances
+	    text_print(caster.getName() + " has exhausted " + spellName + "!");
+	    spells.erase(spellName); // Remove the spell from the caster's spell list if it's exhausted
+    }    
 }
 
 std::string BattleEngine::getNPCMove(const Wizard& npc, const Wizard& opponent) {

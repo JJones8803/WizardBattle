@@ -111,6 +111,12 @@ void Wizard::takeDamage(int rawDamage, const std::string& attackType) {
 
 	int finalDamage = static_cast<int>(rawDamage * multiplier);
 
+	if(this->isShielded){
+		finalDamage /= 2;
+		this->isShielded = false;
+		std::cout << name << "'s protective barrier was active!\n";
+	}
+
 	this->hp -= finalDamage; // Subtract the final damage from the wizard's HP
 	if (this->hp < 0) {
 		this->hp = 0; // Ensure HP doesn't go below 0
@@ -192,4 +198,8 @@ Wizard createNoboro(){
 
 Wizard createWizardByType(const std::string& type){
 	if (type == "Fire") return createFireWizard();
+	if (type == "Earth") return createEarthWizard();
+	if (type == "Water") return createWaterWizard();
+	
+	return createWaterWizard();//default if no type match
 }
